@@ -1,0 +1,881 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+
+            .header h1 {
+                color: #667eea;
+                font-size: 2em;
+            }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #5568d3;
+                transform: translateY(-2px);
+            }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+            .login-container h2 {
+                text-align: center;
+                color: #667eea;
+                margin-bottom: 30px;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                color: #333;
+                font-weight: 500;
+            }
+
+            .form-group input, .form-group select, .form-group textarea {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                font-size: 1em;
+            }
+
+            .form-group textarea {
+                resize: vertical;
+                min-height: 80px;
+            }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+            .filter-group input, .filter-group select {
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+            table th, table td {
+                padding: 12px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+
+            table th {
+                background: #667eea;
+                color: white;
+                font-weight: 600;
+                cursor: pointer;
+                user-select: none;
+            }
+
+                table th:hover {
+                    background: #5568d3;
+                }
+
+            table tbody tr:hover {
+                background: #f8f9fa;
+            }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .badge-low {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-critical {
+            background: #721c24;
+            color: white;
+        }
+
+        .badge-open {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .badge-progress {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-resolved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-closed {
+            background: #d6d8db;
+            color: #383d41;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+            .modal.active {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+            .modal-header h2 {
+                color: #667eea;
+            }
+
+        .close-btn {
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+        }
+
+            .close-btn:hover {
+                color: #333;
+            }
+
+        .screenshots-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .screenshot-thumb {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+            .screenshot-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .screenshot-thumb .delete-screenshot {
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 25px;
+                height: 25px;
+                cursor: pointer;
+                font-size: 0.8em;
+            }
+
+        .comments-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .comment {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .comment-date {
+            color: #666;
+        }
+
+        .image-preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .image-preview-modal.active {
+                display: flex;
+            }
+
+            .image-preview-modal img {
+                max-width: 90%;
+                max-height: 90%;
+            }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <h2>🐛 Bug Tracker Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUsername" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+        <div id="loginError" style="color: red; margin-top: 10px; text-align: center;"></div>
+        <div style="margin-top: 20px; text-align: center; color: #666; font-size: 0.9em;">
+            <p>Demo Credentials:</p>
+            <p>admin/admin123 | tester/tester123 | developer/dev123 | guest/guest123</p>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="container hidden">
+        <div class="header">
+            <h1>🐛 Bug Tracker</h1>
+            <div class="user-info">
+                <span class="user-badge" id="userDisplay"></span>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="openBugModal()" id="addBugBtn">+ Add Bug</button>
+            <div class="filter-group">
+                <input type="text" id="searchInput" placeholder="Search..." onkeyup="applyFilters()">
+                <select id="severityFilter" onchange="applyFilters()">
+                    <option value="">All Severities</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                </select>
+                <select id="statusFilter" onchange="applyFilters()">
+                    <option value="">All Statuses</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                </select>
+            </div>
+        </div>
+
+        <table id="bugsTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable('id')">ID ↕</th>
+                    <th onclick="sortTable('title')">Title/Description ↕</th>
+                    <th onclick="sortTable('module')">Module ↕</th>
+                    <th>Web Page</th>
+                    <th onclick="sortTable('severity')">Severity ↕</th>
+                    <th onclick="sortTable('status')">Status ↕</th>
+                    <th onclick="sortTable('dateReported')">Date Reported ↕</th>
+                    <th>Date Resolved</th>
+                    <th>Assigned To</th>
+                    <th onclick="sortTable('eta')">ETA (hrs) ↕</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="bugsTableBody">
+                <tr><td colspan="11" class="loading">Loading bugs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bug Modal -->
+    <div id="bugModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Bug</h2>
+                <span class="close-btn" onclick="closeBugModal()">&times;</span>
+            </div>
+            <form id="bugForm">
+                <input type="hidden" id="bugId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Title *</label>
+                        <input type="text" id="bugTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Module *</label>
+                        <input type="text" id="bugModule" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="bugDescription" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Web Page</label>
+                        <input type="text" id="bugWebPage">
+                    </div>
+                    <div class="form-group">
+                        <label>Severity *</label>
+                        <select id="bugSeverity" required>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status *</label>
+                        <select id="bugStatus" required>
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned To</label>
+                        <input type="text" id="bugAssignedTo">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date Reported *</label>
+                        <input type="date" id="bugDateReported" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date Resolved</label>
+                        <input type="date" id="bugDateResolved">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ETA (hours)</label>
+                    <input type="number" id="bugETA" value="0" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Screenshots</label>
+                    <input type="file" id="bugScreenshots" multiple accept="image/*">
+                    <div id="existingScreenshots" class="screenshots-container"></div>
+                </div>
+
+                <div class="comments-section" id="commentsSection" style="display: none;">
+                    <h3>Dev Comments</h3>
+                    <div id="commentsList"></div>
+                    <div class="form-group">
+                        <textarea id="newComment" placeholder="Add a comment..."></textarea>
+                        <button type="button" class="btn btn-secondary" onclick="addComment()" style="margin-top: 10px;">Add Comment</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-success">Save Bug</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeBugModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="imagePreviewModal" class="image-preview-modal" onclick="closeImagePreview()">
+        <img id="previewImage" src="" alt="Preview">
+    </div>
+
+    <script>
+        const API_URL = 'https://localhost:44347/api'; // Update with your API URL
+        let currentUser = null;
+        let bugs = [];
+        let currentBugId = null;
+        let sortColumn = 'id';
+        let sortDesc = true;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            setupLoginForm();
+            setupBugForm();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+
+            if (token && user) {
+                currentUser = JSON.parse(user);
+                showMainApp();
+            } else {
+                showLoginScreen();
+            }
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userDisplay').textContent = `${currentUser.userName} (${currentUser.role})`;
+
+            if (currentUser.role === 'Guest') {
+                document.getElementById('addBugBtn').style.display = 'none';
+            }
+
+            loadBugs();
+        }
+
+        function setupLoginForm() {
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+
+                try {
+                    const response = await fetch(`${API_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userName: username, password: password })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        currentUser = data.user;
+                        showMainApp();
+                    } else {
+                        document.getElementById('loginError').textContent = 'Invalid credentials';
+                    }
+                } catch (error) {
+                    document.getElementById('loginError').textContent = 'Login failed. Please try again.';
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            currentUser = null;
+            showLoginScreen();
+        }
+
+        async function loadBugs() {
+            try {
+                const params = new URLSearchParams();
+                const search = document.getElementById('searchInput').value;
+                const severity = document.getElementById('severityFilter').value;
+                const status = document.getElementById('statusFilter').value;
+
+                if (search) params.append('search', search);
+                if (severity) params.append('severity', severity);
+                if (status) params.append('status', status);
+                params.append('sortBy', sortColumn);
+                params.append('desc', sortDesc);
+
+                const response = await fetch(`${API_URL}/bugs?${params}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    bugs = await response.json();
+                    renderBugsTable();
+                }
+            } catch (error) {
+                console.error('Error loading bugs:', error);
+            }
+        }
+
+        function renderBugsTable() {
+            const tbody = document.getElementById('bugsTableBody');
+            if (bugs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">No bugs found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = bugs.$values.map(bug => `
+                <tr>
+                    <td>${bug.id}</td>
+                    <td><strong>${bug.title}</strong><br><small>${bug.description.substring(0, 50)}...</small></td>
+                    <td>${bug.module}</td>
+                    <td>${bug.webPage}</td>
+                    <td><span class="badge badge-${bug.severity.toLowerCase()}">${bug.severity}</span></td>
+                    <td><span class="badge badge-${bug.status.toLowerCase().replace(' ', '')}">${bug.status}</span></td>
+                    <td>${new Date(bug.dateReported).toLocaleDateString()}</td>
+                    <td>${bug.dateResolved ? new Date(bug.dateResolved).toLocaleDateString() : '-'}</td>
+                    <td>${bug.assignedTo}</td>
+                    <td>${bug.eta}</td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 5px 10px;" onclick="editBug(${bug.id})">Edit</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDesc = !sortDesc;
+            } else {
+                sortColumn = column;
+                sortDesc = false;
+            }
+            loadBugs();
+        }
+
+        function applyFilters() {
+            loadBugs();
+        }
+
+        function openBugModal() {
+            if (currentUser.role === 'Guest') return;
+
+            currentBugId = null;
+            document.getElementById('modalTitle').textContent = 'Add Bug';
+            document.getElementById('bugForm').reset();
+            document.getElementById('bugId').value = '';
+            document.getElementById('bugDateReported').value = new Date().toISOString().split('T')[0];
+            document.getElementById('existingScreenshots').innerHTML = '';
+            document.getElementById('commentsSection').style.display = 'none';
+            document.getElementById('bugModal').classList.add('active');
+        }
+
+        function closeBugModal() {
+            document.getElementById('bugModal').classList.remove('active');
+        }
+
+        async function editBug(id) {
+            if (currentUser.role === 'Guest') return;
+
+            try {
+                const response = await fetch(`${API_URL}/bugs/${id}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    const bug = await response.json();
+                    currentBugId = id;
+
+                    document.getElementById('modalTitle').textContent = 'Edit Bug';
+                    document.getElementById('bugId').value = bug.id;
+                    document.getElementById('bugTitle').value = bug.title;
+                    document.getElementById('bugDescription').value = bug.description;
+                    document.getElementById('bugModule').value = bug.module;
+                    document.getElementById('bugWebPage').value = bug.webPage;
+                    document.getElementById('bugSeverity').value = bug.severity;
+                    document.getElementById('bugStatus').value = bug.status;
+                    document.getElementById('bugDateReported').value = bug.dateReported.split('T')[0];
+                    document.getElementById('bugDateResolved').value = bug.dateResolved ? bug.dateResolved.split('T')[0] : '';
+                    document.getElementById('bugAssignedTo').value = bug.assignedTo;
+                    document.getElementById('bugETA').value = bug.eta;
+
+                    // Display existing screenshots
+                    const screenshotsContainer = document.getElementById('existingScreenshots');
+                    screenshotsContainer.innerHTML = bug.screenshots.$values.map(s => `
+                        <div class="screenshot-thumb">
+                            <img src="${API_URL.replace('/api', '')}/${s.filePath}" onclick="previewImage('${API_URL.replace('/api', '')}/${s.filePath}')">
+                            <button class="delete-screenshot" onclick="deleteScreenshot(${s.id})" type="button">×</button>
+                        </div>
+                    `).join('');
+
+                    // Display comments
+                    document.getElementById('commentsSection').style.display = 'block';
+                    const commentsList = document.getElementById('commentsList');
+                    commentsList.innerHTML = bug.comments.$values.map(c => `
+                        <div class="comment">
+                            <div class="comment-header">
+                                <span class="comment-author">${c.createdBy}</span>
+                                <span class="comment-date">${new Date(c.createdAt).toLocaleString()}</span>
+                            </div>
+                            <div>${c.comment}</div>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('bugModal').classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error loading bug:', error);
+            }
+        }
+
+        function setupBugForm() {
+            document.getElementById('bugForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData();
+                formData.append('title', document.getElementById('bugTitle').value);
+                formData.append('description', document.getElementById('bugDescription').value);
+                formData.append('module', document.getElementById('bugModule').value);
+                formData.append('webPage', document.getElementById('bugWebPage').value);
+                formData.append('severity', document.getElementById('bugSeverity').value);
+                formData.append('status', document.getElementById('bugStatus').value);
+                formData.append('dateReported', document.getElementById('bugDateReported').value);
+                formData.append('dateResolved', document.getElementById('bugDateResolved').value);
+                formData.append('assignedTo', document.getElementById('bugAssignedTo').value);
+                formData.append('eta', document.getElementById('bugETA').value);
+
+                const files = document.getElementById('bugScreenshots').files;
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('screenshots', files[i]);
+                }
+
+                try {
+                    const url = currentBugId ? `${API_URL}/bugs/${currentBugId}` : `${API_URL}/bugs`;
+                    const method = currentBugId ? 'PUT' : 'POST';
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        closeBugModal();
+                        loadBugs();
+                    }
+                } catch (error) {
+                    console.error('Error saving bug:', error);
+                }
+            });
+        }
+
+        async function addComment() {
+            const comment = document.getElementById('newComment').value;
+            if (!comment || !currentBugId) return;
+
+            try {
+                const response = await fetch(`${API_URL}/bugs/${currentBugId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ comment })
+                });
+
+                if (response.ok) {
+                    document.getElementById('newComment').value = '';
+                    editBug(currentBugId);
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+            }
+        }
+
+        async function deleteScreenshot(id) {
+            if (!confirm('Delete this screenshot?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/bugs/screenshots/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    editBug(currentBugId);
+                }
+            } catch (error) {
+                console.error('Error deleting screenshot:', error);
+            }
+        }
+
+        function previewImage(url) {
+            document.getElementById('previewImage').src = url;
+            document.getElementById('imagePreviewModal').classList.add('active');
+        }
+
+        function closeImagePreview() {
+            document.getElementById('imagePreviewModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

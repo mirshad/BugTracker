@@ -267,14 +267,19 @@
                 max-width: 360px;
             }
 
-                .bugs-table .title-cell .meta {
-                    color: #666;
-                    font-size: 0.9em;
-                    margin-top: 6px;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
+            .bugs-table th.sortable {
+                cursor: pointer;
+                user-select: none;
+            }
+
+        .sort-indicator {
+            display: inline-block;
+            width: 10px;
+            margin-left: 6px;
+            opacity: 0.7;
+            transform: translateY(-1px);
+            font-size: 0.8em;
+        }
 
         .thumbs {
             display: flex;
@@ -310,6 +315,18 @@
             padding: 40px;
             color: #999;
         }
+
+        .table-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+            .table-controls .control {
+                min-width: 160px;
+            }
 
         .form-row {
             display: grid;
@@ -443,72 +460,106 @@
 
         <div id="addModal" class="modal">
             <div class="modal-content">
-                <div class="controls">
-                    <h2 style="margin-bottom: 15px; color: #333;">
-                        <span id="formTitle">Add New Bug</span>
-                    </h2>
+            <div class="controls">
+                <h2 style="margin-bottom: 15px; color: #333;">
+                    <span id="formTitle">Add New Bug</span>
+                </h2>
                     <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
-                    <form id="bugForm">
+                <form id="bugForm">
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="pageUrl">Page URL</label>
+                        <input type="url" id="pageUrl" placeholder="https://example.com/page">
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
-                            <label for="title">Title *</label>
-                            <input type="text" id="title" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Description *</label>
-                            <textarea id="description" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="pageUrl">Page URL</label>
-                            <input type="url" id="pageUrl" placeholder="https://example.com/page">
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="status">Status</label>
-                                <select id="status">
-                                    <option value="Open">Open</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Resolved">Resolved</option>
-                                    <option value="Closed">Closed</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="priority">Priority</label>
-                                <select id="priority">
-                                    <option value="Low">Low</option>
-                                    <option value="Medium" selected>Medium</option>
-                                    <option value="High">High</option>
-                                </select>
-                            </div>
+                            <label for="status">Status</label>
+                            <select id="status">
+                                <option value="Open">Open</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Closed">Closed</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="assignedTo">Assigned To</label>
-                            <input type="text" id="assignedTo" placeholder="Enter name">
+                            <label for="priority">Priority</label>
+                            <select id="priority">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <label>Screenshots (Multiple files allowed)</label>
-                            <div class="file-upload-container" onclick="document.getElementById('screenshots').click()">
-                                <label class="upload-label">
-                                    <span class="upload-icon">📷</span>
-                                    <span>Click to upload screenshots</span>
-                                    <small style="color: #666;">PNG, JPG, GIF (Max 5MB each)</small>
-                                </label>
-                                <input type="file" id="screenshots" multiple accept="image/*">
-                            </div>
-                            <div id="newFilePreview" class="file-preview"></div>
-                            <div id="existingScreenshots" class="file-preview"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignedTo">Assigned To</label>
+                        <input type="text" id="assignedTo" placeholder="Enter name">
+                    </div>
+                    <div class="form-group">
+                        <label>Screenshots (Multiple files allowed)</label>
+                        <div class="file-upload-container" onclick="document.getElementById('screenshots').click()">
+                            <label class="upload-label">
+                                <span class="upload-icon">📷</span>
+                                <span>Click to upload screenshots</span>
+                                <small style="color: #666;">PNG, JPG, GIF (Max 5MB each)</small>
+                            </label>
+                            <input type="file" id="screenshots" multiple accept="image/*">
                         </div>
-                        <div class="btn-group">
-                            <button type="submit" class="btn-primary" id="submitBtn">Add Bug</button>
-                            <button type="button" class="btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
-                        </div>
-                    </form>
-                </div>
+                        <div id="newFilePreview" class="file-preview"></div>
+                        <div id="existingScreenshots" class="file-preview"></div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn-primary" id="submitBtn">Add Bug</button>
+                        <button type="button" class="btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
+                    </div>
+                </form>
             </div>
+        </div>
         </div>
 
         <div class="bugs-container">
             <h2 style="margin-bottom: 15px; color: #333;">Bug List</h2>
-            <button type="button" class="btn-primary" id="btnAddBug" onclick="AddNewBug();">Add Bug</button>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button type="button" class="btn-primary" id="btnAddBug" onclick="AddNewBug();">Add Bug</button>
+                <div style="flex:1"></div>
+            </div>
+
+            <!-- Filtering / Searching / Sorting controls -->
+            <div class="table-controls" id="tableControls">
+                <div class="control">
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus">
+                        <option value="All">All</option>
+                        <option>Open</option>
+                        <option>In Progress</option>
+                        <option>Resolved</option>
+                        <option>Closed</option>
+                    </select>
+                </div>
+                <div class="control">
+                    <label for="filterPriority">Priority</label>
+                    <select id="filterPriority">
+                        <option value="All">All</option>
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </div>
+                <div class="control" style="flex:1; min-width:220px;">
+                    <label for="searchQuery">Search</label>
+                    <input id="searchQuery" type="search" placeholder="Search title, description, assigned to...">
+                </div>
+                <div class="control" style="align-self:end;">
+                    <button id="clearFilters" class="btn-secondary">Clear</button>
+                </div>
+            </div>
+
             <div id="bugsList"></div>
         </div>
     </div>
@@ -529,7 +580,30 @@
         let newFiles = [];
         let existingScreenshots = [];
 
+        // Sorting/filtering state
+        let allBugs = []; // cached from API
+        let sortBy = 'createdAt';
+        let sortDir = 'desc'; // 'asc' | 'desc'
+        const filters = {
+            status: 'All',
+            priority: 'All',
+            q: ''
+        };
+
+        // Event wiring
         document.getElementById('screenshots').addEventListener('change', handleFileSelect);
+        document.getElementById('filterStatus').addEventListener('change', (e) => { filters.status = e.target.value; renderBugs(); });
+        document.getElementById('filterPriority').addEventListener('change', (e) => { filters.priority = e.target.value; renderBugs(); });
+        document.getElementById('searchQuery').addEventListener('input', debounce((e) => { filters.q = e.target.value.trim(); renderBugs(); }, 250));
+        document.getElementById('clearFilters').addEventListener('click', () => {
+            filters.status = 'All';
+            filters.priority = 'All';
+            filters.q = '';
+            document.getElementById('filterStatus').value = 'All';
+            document.getElementById('filterPriority').value = 'All';
+            document.getElementById('searchQuery').value = '';
+            renderBugs();
+        });
 
         function handleFileSelect(e) {
             const files = Array.from(e.target.files);
@@ -611,7 +685,8 @@
             try {
                 const response = await fetch(`${API_URL}/bugs`);
                 const bugs = await response.json();
-                displayBugs(bugs);
+                allBugs = Array.isArray(bugs) ? bugs : [];
+                renderBugs();
             } catch (error) {
                 console.error('Error loading bugs:', error);
                 document.getElementById('bugsList').innerHTML =
@@ -619,6 +694,79 @@
             }
         }
 
+        // Apply filters and sorting to cached bugs and re-render
+        function renderBugs() {
+            const processed = applyFiltersAndSort(allBugs);
+            displayBugs(processed);
+            updateSortIndicators();
+        }
+
+        // Filtering + sorting logic
+        function applyFiltersAndSort(bugs) {
+            // filter
+            let out = bugs.filter(b => {
+                if (filters.status !== 'All' && b.status !== filters.status) return false;
+                if (filters.priority !== 'All' && b.priority !== filters.priority) return false;
+                if (filters.q) {
+                    const q = filters.q.toLowerCase();
+                    const hay = `${b.title || ''} ${b.description || ''} ${b.assignedTo || ''} ${b.pageUrl || ''}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            // sort
+            const priorityRank = { 'High': 3, 'Medium': 2, 'Low': 1 };
+            const statusRank = { 'Open': 4, 'In Progress': 3, 'Resolved': 2, 'Closed': 1 };
+
+            out.sort((a, b) => {
+                const aVal = getSortValue(a, sortBy);
+                const bVal = getSortValue(b, sortBy);
+
+                if (aVal == null && bVal == null) return 0;
+                if (aVal == null) return sortDir === 'asc' ? -1 : 1;
+                if (bVal == null) return sortDir === 'asc' ? 1 : -1;
+
+                // numeric/date comparison
+                if (sortBy === 'createdAt') {
+                    const diff = new Date(aVal) - new Date(bVal);
+                    return sortDir === 'asc' ? diff : -diff;
+                }
+
+                if (sortBy === 'priority') {
+                    const diff = (priorityRank[aVal] || 0) - (priorityRank[bVal] || 0);
+                    return sortDir === 'asc' ? diff : -diff;
+                }
+
+                if (sortBy === 'status') {
+                    const diff = (statusRank[aVal] || 0) - (statusRank[bVal] || 0);
+                    return sortDir === 'asc' ? diff : -diff;
+                }
+
+                // fallback string compare
+                const sa = String(aVal).toLowerCase();
+                const sb = String(bVal).toLowerCase();
+                if (sa < sb) return sortDir === 'asc' ? -1 : 1;
+                if (sa > sb) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            return out;
+        }
+
+        function getSortValue(item, key) {
+            switch (key) {
+                case 'id': return item.id;
+                case 'title': return item.title;
+                case 'status': return item.status;
+                case 'priority': return item.priority;
+                case 'assignedTo': return item.assignedTo;
+                case 'createdAt': return item.createdAt;
+                default: return item[key];
+            }
+        }
+
+        // Display table - same markup as before, but accepts already-filtered/sorted list
         function displayBugs(bugs) {
             const container = document.getElementById('bugsList');
 
@@ -628,8 +776,8 @@
             }
 
             const rows = bugs.map(bug => {
-                const statusClass = `status-${bug.status.toLowerCase().replace(' ', '')}`;
-                const priorityClass = `priority-${bug.priority.toLowerCase()}`;
+                const statusClass = `status-${(bug.status || '').toLowerCase().replace(' ', '')}`;
+                const priorityClass = `priority-${(bug.priority || '').toLowerCase()}`;
                 const description = bug.description ? escapeHtml(bug.description) : '';
                 const shortDesc = description.length > 120 ? description.substring(0, 120) + '...' : description;
 
@@ -673,12 +821,12 @@
                         <table class="bugs-table" role="table" aria-label="Bug list table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Title & Description</th>
-                                    <th>Status</th>
-                                    <th>Priority</th>
-                                    <th>Assigned To</th>
-                                    <th>Created</th>
+                                    <th class="sortable" onclick="toggleSort('id')">ID <span class="sort-indicator" id="sort-id"></span></th>
+                                    <th class="sortable" onclick="toggleSort('title')">Title & Description <span class="sort-indicator" id="sort-title"></span></th>
+                                    <th class="sortable" onclick="toggleSort('status')">Status <span class="sort-indicator" id="sort-status"></span></th>
+                                    <th class="sortable" onclick="toggleSort('priority')">Priority <span class="sort-indicator" id="sort-priority"></span></th>
+                                    <th class="sortable" onclick="toggleSort('assignedTo')">Assigned To <span class="sort-indicator" id="sort-assignedTo"></span></th>
+                                    <th class="sortable" onclick="toggleSort('createdAt')">Created <span class="sort-indicator" id="sort-createdAt"></span></th>
                                     <th>Screenshots</th>
                                     <th>Actions</th>
                                 </tr>
@@ -689,6 +837,29 @@
                         </table>
                     </div>
                 `;
+        }
+
+        function updateSortIndicators() {
+            const keys = ['id', 'title', 'status', 'priority', 'assignedTo', 'createdAt'];
+            keys.forEach(k => {
+                const el = document.getElementById(`sort-${k}`);
+                if (!el) return;
+                if (sortBy === k) {
+                    el.textContent = sortDir === 'asc' ? '▲' : '▼';
+                } else {
+                    el.textContent = '';
+                }
+            });
+        }
+
+        function toggleSort(column) {
+            if (sortBy === column) {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortBy = column;
+                sortDir = 'asc';
+            }
+            renderBugs();
         }
 
         function escapeHtml(text) {
@@ -754,8 +925,8 @@
                     body: formData
                 });
 
-                resetForm();
-                loadBugs();
+                editingBugId ? '': resetForm();
+                await loadBugs();
                 loadStats();
             } catch (error) {
                 console.error('Error saving bug:', error);
@@ -783,9 +954,9 @@
                 document.getElementById('formTitle').textContent = 'Edit Bug';
                 document.getElementById('submitBtn').textContent = 'Update Bug';
                 document.getElementById('cancelBtn').style.display = 'block';
-                AddNewBug();
+
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                
+                AddNewBug();
             } catch (error) {
                 console.error('Error loading bug:', error);
             }
@@ -796,7 +967,7 @@
 
             try {
                 await fetch(`${API_URL}/bugs/${id}`, { method: 'DELETE' });
-                loadBugs();
+                await loadBugs();
                 loadStats();
             } catch (error) {
                 console.error('Error deleting bug:', error);
@@ -825,6 +996,15 @@
             loadBugs();
             loadStats();
         }, 30000);
+
+        // Utilities
+        function debounce(fn, ms) {
+            let t;
+            return function (...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), ms);
+            };
+        }
     </script>
 </body>
 </html>
