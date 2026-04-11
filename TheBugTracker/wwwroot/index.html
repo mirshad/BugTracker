@@ -552,7 +552,7 @@
                 <div class="comments-section" id="commentsSection" style="display: none;">
                     <h3>Dev Comments</h3>
                     <div id="commentsList"></div>
-                    <div class="form-group">
+                    <div class="form-group" id="addComments">
                         <textarea id="newComment" placeholder="Add a comment..."></textarea>
                         <button type="button" class="btn btn-secondary" onclick="addComment()" style="margin-top: 10px;">Add Comment</button>
                     </div>
@@ -734,7 +734,7 @@
         }
 
         async function editBug(id) {
-            if (currentUser.role === 'Guest') return;
+            //if (currentUser.role === 'Guest') return;
 
             try {
                 const response = await fetch(`${API_URL}/bugs/${id}`, {
@@ -758,6 +758,10 @@
                     document.getElementById('bugAssignedTo').value = bug.assignedTo;
                     document.getElementById('bugETA').value = bug.eta;
 
+                    if (currentUser.role === 'Guest') {
+                        document.getElementById('bugStatus').disabled = true;
+                        document.getElementById('addComments').style.display = 'none';
+                    }
                     // Display existing screenshots
                     const screenshotsContainer = document.getElementById('existingScreenshots');
                     screenshotsContainer.innerHTML = bug.screenshots.$values.map(s => `
@@ -790,7 +794,7 @@
         function setupBugForm() {
             document.getElementById('bugForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-
+                if (currentUser.role === 'Tester') return;
                 const formData = new FormData();
                 formData.append('title', document.getElementById('bugTitle').value);
                 formData.append('description', document.getElementById('bugDescription').value);
