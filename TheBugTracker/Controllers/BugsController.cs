@@ -20,6 +20,12 @@ namespace TheBugTracker.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetAPI()
+        {
+            return Ok("API is Running...");
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetBugs([FromQuery] string? search, [FromQuery] string? severity,
             [FromQuery] string? status, [FromQuery] string? sortBy, [FromQuery] bool desc = false)
         {

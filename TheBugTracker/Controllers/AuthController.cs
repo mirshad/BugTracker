@@ -46,6 +46,8 @@ namespace TheBugTracker.Controllers
             });
         }
 
+
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {

@@ -1,6 +1,7 @@
-@TheBugTracker_HostAddress = http://localhost:5019
+@TheBugTracker_HostAddress = https://localhost:44347
 
-GET {{TheBugTracker_HostAddress}}/weatherforecast/
+GET {{TheBugTracker_HostAddress}}/api/Bugs/
 Accept: application/json
+
 
 ###
