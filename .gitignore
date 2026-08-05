@@ -266,6 +266,14 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+# Local SQLite databases and secrets (Bug Tracker)
+*.db
+*.db-shm
+*.db-wal
+**/Credential.txt
+**/appsettings.*.local.json
+**/secrets.json
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout

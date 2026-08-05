@@ -5,20 +5,37 @@ let currentBugId = null;
 let sortColumn = 'id';
 let sortDesc = true;
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     setupLoginForm();
     setupBugForm();
 });
 
+function escapeHtml(value) {
+    if (value == null) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(value) {
+    return escapeHtml(value).replace(/`/g, '&#96;');
+}
+
 function checkAuth() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
 
     if (token && user) {
-        currentUser = JSON.parse(user);
-        showMainApp();
+        try {
+            currentUser = JSON.parse(user);
+            showMainApp();
+        } catch {
+            logout();
+        }
     } else {
         showLoginScreen();
     }
@@ -32,7 +49,8 @@ function showLoginScreen() {
 function showMainApp() {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
-    document.getElementById('userDisplay').textContent = `${currentUser.userName} (${currentUser.role})`;
+    document.getElementById('userDisplay').textContent =
+        `${currentUser.userName} (${currentUser.role})`;
 
     if (currentUser.role === 'Guest') {
         document.getElementById('addBugBtn').style.display = 'none';
@@ -46,6 +64,8 @@ function setupLoginForm() {
         e.preventDefault();
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
+        const loginError = document.getElementById('loginError');
+        loginError.textContent = '';
 
         try {
             const response = await fetch(`${API_URL}/auth/login`, {
@@ -61,10 +81,10 @@ function setupLoginForm() {
                 currentUser = data.user;
                 showMainApp();
             } else {
-                document.getElementById('loginError').textContent = 'Invalid credentials';
+                loginError.textContent = 'Invalid credentials';
             }
         } catch (error) {
-            document.getElementById('loginError').textContent = 'Login failed. Please try again.';
+            loginError.textContent = 'Login failed. Please try again.';
         }
     });
 }
@@ -74,6 +94,13 @@ function logout() {
     localStorage.removeItem('user');
     currentUser = null;
     showLoginScreen();
+}
+
+function authHeaders(extra = {}) {
+    return {
+        ...extra,
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+    };
 }
 
 async function loadBugs() {
@@ -90,8 +117,13 @@ async function loadBugs() {
         params.append('desc', sortDesc);
 
         const response = await fetch(`${API_URL}/bugs?${params}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: authHeaders()
         });
+
+        if (response.status === 401) {
+            logout();
+            return;
+        }
 
         if (response.ok) {
             bugs = await response.json();
@@ -104,28 +136,40 @@ async function loadBugs() {
 
 function renderBugsTable() {
     const tbody = document.getElementById('bugsTableBody');
-    if (bugs.length === 0) {
+    const rows = bugs.$values || bugs;
+    if (!rows || rows.length === 0) {
         tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">No bugs found</td></tr>';
         return;
     }
 
-    tbody.innerHTML = bugs.$values.map(bug => `
+    tbody.innerHTML = rows.map(bug => {
+        const severityClass = escapeAttr(String(bug.severity || '').toLowerCase());
+        const statusClass = escapeAttr(String(bug.status || '').toLowerCase().replace(' ', ''));
+        const description = String(bug.description || '');
+        const shortDesc = description.length > 50 ? `${description.substring(0, 50)}...` : description;
+
+        return `
                 <tr>
-                    <td>${bug.id}</td>
-                    <td><strong>${bug.title}</strong><br><small>${bug.description.substring(0, 50)}...</small></td>
-                    <td>${bug.module}</td>
-                    <td>${bug.webPage}</td>
-                    <td><span class="badge badge-${bug.severity.toLowerCase()}">${bug.severity}</span></td>
-                    <td><span class="badge badge-${bug.status.toLowerCase().replace(' ', '')}">${bug.status}</span></td>
-                    <td>${new Date(bug.dateReported).toLocaleDateString()}</td>
-                    <td>${bug.dateResolved ? new Date(bug.dateResolved).toLocaleDateString() : '-'}</td>
-                    <td>${bug.assignedTo}</td>
-                    <td>${bug.eta}</td>
+                    <td>${escapeHtml(bug.id)}</td>
+                    <td><strong>${escapeHtml(bug.title)}</strong><br><small>${escapeHtml(shortDesc)}</small></td>
+                    <td>${escapeHtml(bug.module)}</td>
+                    <td>${escapeHtml(bug.webPage)}</td>
+                    <td><span class="badge badge-${severityClass}">${escapeHtml(bug.severity)}</span></td>
+                    <td><span class="badge badge-${statusClass}">${escapeHtml(bug.status)}</span></td>
+                    <td>${escapeHtml(new Date(bug.dateReported).toLocaleDateString())}</td>
+                    <td>${bug.dateResolved ? escapeHtml(new Date(bug.dateResolved).toLocaleDateString()) : '-'}</td>
+                    <td>${escapeHtml(bug.assignedTo)}</td>
+                    <td>${escapeHtml(bug.eta)}</td>
                     <td>
-                        <button class="btn btn-primary" style="padding: 5px 10px;" onclick="editBug(${bug.id})">Edit</button>
+                        <button class="btn btn-primary" style="padding: 5px 10px;" data-bug-id="${escapeAttr(bug.id)}" data-action="edit">Edit</button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+    }).join('');
+
+    tbody.querySelectorAll('[data-action="edit"]').forEach(btn => {
+        btn.addEventListener('click', () => editBug(Number(btn.dataset.bugId)));
+    });
 }
 
 function sortTable(column) {
@@ -152,6 +196,8 @@ function openBugModal() {
     document.getElementById('bugDateReported').value = new Date().toISOString().split('T')[0];
     document.getElementById('existingScreenshots').innerHTML = '';
     document.getElementById('commentsSection').style.display = 'none';
+    document.getElementById('bugStatus').disabled = false;
+    document.getElementById('addComments').style.display = '';
     document.getElementById('bugModal').classList.add('active');
 }
 
@@ -159,13 +205,21 @@ function closeBugModal() {
     document.getElementById('bugModal').classList.remove('active');
 }
 
-async function editBug(id) {
-    //if (currentUser.role === 'Guest') return;
+function isSafeUploadPath(filePath) {
+    return typeof filePath === 'string'
+        && /^uploads\/[A-Za-z0-9._-]+$/.test(filePath);
+}
 
+async function editBug(id) {
     try {
         const response = await fetch(`${API_URL}/bugs/${id}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: authHeaders()
         });
+
+        if (response.status === 401) {
+            logout();
+            return;
+        }
 
         if (response.ok) {
             const bug = await response.json();
@@ -184,29 +238,50 @@ async function editBug(id) {
             document.getElementById('bugAssignedTo').value = bug.assignedTo;
             document.getElementById('bugETA').value = bug.eta;
 
-            if (currentUser.role === 'Guest') {
-                document.getElementById('bugStatus').disabled = true;
-                document.getElementById('addComments').style.display = 'none';
-            }
-            // Display existing screenshots
-            const screenshotsContainer = document.getElementById('existingScreenshots');
-            screenshotsContainer.innerHTML = bug.screenshots.$values.map(s => `
-                        <div class="screenshot-thumb">
-                            <img src="${API_URL.replace('/api', '')}/${s.filePath}" onclick="previewImage('${API_URL.replace('/api', '')}/${s.filePath}')">
-                            <button class="delete-screenshot" onclick="deleteScreenshot(${s.id})" type="button">×</button>
-                        </div>
-                    `).join('');
+            const isGuest = currentUser.role === 'Guest';
+            document.getElementById('bugStatus').disabled = isGuest;
+            document.getElementById('addComments').style.display = isGuest ? 'none' : '';
 
-            // Display comments
+            const screenshotsContainer = document.getElementById('existingScreenshots');
+            const screenshots = bug.screenshots?.$values || bug.screenshots || [];
+            screenshotsContainer.innerHTML = '';
+            screenshots.forEach(s => {
+                if (!isSafeUploadPath(s.filePath)) return;
+
+                const base = API_URL.replace(/\/api\/?$/, '');
+                const url = `${base}/${s.filePath}`;
+
+                const wrap = document.createElement('div');
+                wrap.className = 'screenshot-thumb';
+
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Screenshot';
+                img.addEventListener('click', () => previewImage(url));
+                wrap.appendChild(img);
+
+                if (!isGuest) {
+                    const del = document.createElement('button');
+                    del.type = 'button';
+                    del.className = 'delete-screenshot';
+                    del.textContent = '×';
+                    del.addEventListener('click', () => deleteScreenshot(s.id));
+                    wrap.appendChild(del);
+                }
+
+                screenshotsContainer.appendChild(wrap);
+            });
+
             document.getElementById('commentsSection').style.display = 'block';
             const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTML = bug.comments.$values.map(c => `
+            const comments = bug.comments?.$values || bug.comments || [];
+            commentsList.innerHTML = comments.map(c => `
                         <div class="comment">
                             <div class="comment-header">
-                                <span class="comment-author">${c.createdBy}</span>
-                                <span class="comment-date">${new Date(c.createdAt).toLocaleString()}</span>
+                                <span class="comment-author">${escapeHtml(c.createdBy)}</span>
+                                <span class="comment-date">${escapeHtml(new Date(c.createdAt).toLocaleString())}</span>
                             </div>
-                            <div>${c.comment}</div>
+                            <div>${escapeHtml(c.comment)}</div>
                         </div>
                     `).join('');
 
@@ -220,7 +295,8 @@ async function editBug(id) {
 function setupBugForm() {
     document.getElementById('bugForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (currentUser.role === 'Tester') return;
+        if (currentUser.role === 'Guest') return;
+
         const formData = new FormData();
         formData.append('title', document.getElementById('bugTitle').value);
         formData.append('description', document.getElementById('bugDescription').value);
@@ -244,13 +320,21 @@ function setupBugForm() {
 
             const response = await fetch(url, {
                 method: method,
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                headers: authHeaders(),
                 body: formData
             });
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
 
             if (response.ok) {
                 closeBugModal();
                 loadBugs();
+            } else {
+                const err = await response.json().catch(() => ({}));
+                alert(err.message || 'Failed to save bug.');
             }
         } catch (error) {
             console.error('Error saving bug:', error);
@@ -259,18 +343,22 @@ function setupBugForm() {
 }
 
 async function addComment() {
+    if (currentUser.role === 'Guest') return;
+
     const comment = document.getElementById('newComment').value;
     if (!comment || !currentBugId) return;
 
     try {
         const response = await fetch(`${API_URL}/bugs/${currentBugId}/comments`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ comment })
         });
+
+        if (response.status === 401) {
+            logout();
+            return;
+        }
 
         if (response.ok) {
             document.getElementById('newComment').value = '';
@@ -282,13 +370,19 @@ async function addComment() {
 }
 
 async function deleteScreenshot(id) {
+    if (currentUser.role === 'Guest') return;
     if (!confirm('Delete this screenshot?')) return;
 
     try {
         const response = await fetch(`${API_URL}/bugs/screenshots/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: authHeaders()
         });
+
+        if (response.status === 401) {
+            logout();
+            return;
+        }
 
         if (response.ok) {
             editBug(currentBugId);
